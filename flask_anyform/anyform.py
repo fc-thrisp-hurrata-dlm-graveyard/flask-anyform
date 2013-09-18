@@ -1,8 +1,10 @@
+from functools import partial
 from collections import OrderedDict
 from werkzeug.local import LocalProxy
 from werkzeug.datastructures import MultiDict
 from flask import request, current_app, get_template_attribute
 from .utils import get_url
+
 
 _anyform = LocalProxy(lambda: current_app.extensions['anyform'])
 _endpoint = LocalProxy(lambda: request.endpoint.rsplit(':')[-1])
@@ -30,8 +32,15 @@ class AForm(object):
     def _renderable(self):
         return get_template_attribute(self.af_template, self.af_macro)
 
+    @property
     def render(self):
         return self._renderable(self)
+
+    #form in practice: set next, return with request.form if necessary
+    #@property
+    #def filled_form(self):
+    #    if request.form:
+    #        return self.af_form(request.form)
 
     def set_form_next(self, request):
         if getattr(self.af_form, 'next', None):
@@ -62,7 +71,7 @@ class AnyForm(object):
         Initializes the Flask-Anyform extension for the specified application.
 
         :param app: The application.
-        :param forms: A list of AForm instances
+        :param forms: A list of AForm instances, or corresponding dicts
         """
         self.app = app
 
@@ -92,10 +101,15 @@ class AnyForm(object):
         return ctx_prc
 
     def get_processor_for(self, form):
-        return {"{}_form".format(form.af_tag): self.update_and_render(form)}#problem:defer actual update of ctx until actually called
+        return {"{}_form".format(form.af_tag): self.form_ctx_function(form)}
 
-    def update_and_render(self, form):
-        form.update(**self._run_form_ctx(form.af_tag))
+    def form_ctx_function(self, form):
+        run_ctx = partial(self._run_form_ctx, form.af_tag)
+        run_update = partial(form.update)
+        return partial(self._on_form_ctx, form, run_ctx, run_update)
+
+    def _on_form_ctx(self, form, run_ctx, run_update):
+        run_update(**run_ctx())
         return form.render
 
     def _add_form_ctx(self, form, fn):

@@ -1,1 +1,1 @@
-from anyform import AnyForm, AForm
+from .anyform import AnyForm, AForm

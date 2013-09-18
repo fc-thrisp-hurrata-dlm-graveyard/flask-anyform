@@ -16,6 +16,7 @@ class AnyFormTest(unittest.TestCase):
         app = self._create_app(self.ANYFORM_CONFIG or {}, **app_kwargs)
         app.debug = False
         app.config['TESTING'] = True
+        app.config['SECRET_KEY'] = B'SECRET_KEY'
 
         app.anyform_e = AnyForm(app, forms=[])
 
@@ -25,8 +26,7 @@ class AnyFormTest(unittest.TestCase):
         with self.client.session_transaction() as session:
             session['csrf'] = 'csrf_token'
 
-        csrf_hmac = hmac.new(self.app.config['SECRET_KEY'],
-                             'csrf_token'.encode('utf8'), digestmod=sha1)
+        csrf_hmac = hmac.new(self.app.config['SECRET_KEY'], 'csrf_token'.encode('utf-8'), digestmod=sha1)
         self.csrf_token = '##' + csrf_hmac.hexdigest()
 
     def _create_app(self, anyform_config, **kwargs):
