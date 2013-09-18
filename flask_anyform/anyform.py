@@ -4,19 +4,24 @@ from werkzeug.datastructures import MultiDict
 from flask import request, current_app, get_template_attribute
 from .utils import get_url
 
-
 _anyform = LocalProxy(lambda: current_app.extensions['anyform'])
 _endpoint = LocalProxy(lambda: request.endpoint.rsplit(':')[-1])
-_current_forms = LocalProxy(lambda: current_app.extensions['anyform'].current_forms)
+current_forms = LocalProxy(lambda: current_app.extensions['anyform'].get_current_forms)
 
 
 class AForm(object):
     def __init__(self, **kwargs):
-        self.af_tag = kwargs.pop('af_tag', None)
-        self.af_form = kwargs.pop('af_form', None)
-        self.af_template = kwargs.pop('af_template', None)
-        self.af_macro = kwargs.pop('af_macro', None)
-        self.af_points = kwargs.pop('af_points', ['all'])
+        self.af_tag = kwargs.get('af_tag')
+        self.af_form = kwargs.get('af_form')
+        self.af_template = kwargs.get('af_template')
+        self.af_macro = kwargs.get('af_macro')
+        self.af_points = self.set_points(kwargs.get('af_points'))
+
+    def set_points(self, points):
+        if points:
+            return points
+        else:
+            return ['all']
 
     def update(self, **kwargs):
         [setattr(self, k, v) for k, v in kwargs.items()]
@@ -35,6 +40,12 @@ class AForm(object):
 
 
 class AnyForm(object):
+    """
+    The Flask-Anyform extension
+
+    :param app: The application.
+    :param forms: A list of AForm instances
+    """
     def __init__(self,
                  app=None,
                  forms=None,
@@ -77,11 +88,11 @@ class AnyForm(object):
         ctx_prc = {}
         for form in self.provides.values():
             ctx_prc.update(self.get_processor_for(form))
-        ctx_prc.update({'anyform':_anyform, 'current_forms': _current_forms})
+        ctx_prc.update({'anyform':_anyform, 'current_forms': current_forms})
         return ctx_prc
 
     def get_processor_for(self, form):
-        return {"{}_form".format(form.af_tag): self.update_and_render(form)}
+        return {"{}_form".format(form.af_tag): self.update_and_render(form)}#problem:defer actual update of ctx until actually called
 
     def update_and_render(self, form):
         form.update(**self._run_form_ctx(form.af_tag))
@@ -106,7 +117,7 @@ class AnyForm(object):
         self._add_form_ctx(fn_for_form, fn)
 
     @property
-    def current_forms(self):
+    def get_current_forms(self):
         return {k: v for k,v in self.provides.items() if self.form_in_endpoint(v.af_points)}
 
     def form_in_endpoint(self, vaf):

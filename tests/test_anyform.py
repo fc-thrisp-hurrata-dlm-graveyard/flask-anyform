@@ -1,10 +1,14 @@
 from __future__ import with_statement
 import hmac
+from hashlib import sha1
 import unittest
 from flask_anyform import AnyForm, AForm
 from test_app import create_app
 
 class AnyFormTest(unittest.TestCase):
+    APP_KWARGS = {}
+    ANYFORM_CONFIG = None
+
     def setUp(self):
         super(AnyFormTest, self).setUp()
 
@@ -54,6 +58,14 @@ class AnyFormTest(unittest.TestCase):
                                 'application/x-www-form-urlencoded',
                                 headers=headers)
 
+
+    def test_extension(self):
+        self.assertIsNotNone(self.app)
+        self.assertIsNotNone(self.app.extensions['anyform'])
+        self.assertIsNotNone(self.app.extensions['anyform'].app)
+        self.assertIsNotNone(self.app.extensions['anyform'].forms)
+        self.assertIsNotNone(self.app.extensions['anyform'].provides)
+        self.assertEqual(self.app.extensions['anyform']._ctx_processors, {})
 
 if __name__ == '__main__':
     unittest.main()
