@@ -12,6 +12,10 @@ def create_app(config):
 
     @app.route('/')
     def index():
-        return render_template('index.html', content='Home Page')
+        return render_template('index.html')
+
+    @app.route('/notindex')
+    def notindex():
+        return render_template('index.html')
 
     return app

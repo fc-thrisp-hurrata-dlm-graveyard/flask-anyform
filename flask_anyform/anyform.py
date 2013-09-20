@@ -7,7 +7,9 @@ from .utils import get_url
 
 
 _anyform = LocalProxy(lambda: current_app.extensions['anyform'])
-_endpoint = LocalProxy(lambda: request.endpoint.rsplit(':')[-1])
+_endpoints = LocalProxy(lambda: [str(x) for x in (request.endpoint.rsplit(':')[-1],
+                                                  request.endpoint.rsplit('.')[-1],
+                                                  u'all')])
 current_forms = LocalProxy(lambda: current_app.extensions['anyform'].get_current_forms)
 
 
@@ -16,8 +18,10 @@ class AForm(object):
         self.af_tag = kwargs.get('af_tag')
         self.af_form = kwargs.get('af_form')
         self.af_template = kwargs.get('af_template')
+        self.af_view_template = kwargs.get('af_view_template')
         self.af_macro = kwargs.get('af_macro')
         self.af_points = self.set_points(kwargs.get('af_points'))
+        self.populate = kwargs.get('populate', True)
 
     def set_points(self, points):
         if points:
@@ -36,15 +40,25 @@ class AForm(object):
     def render(self):
         return self._renderable(self)
 
-    #form in practice: set next, return with request.form if necessary
-    #@property
-    #def filled_form(self):
-    #    if request.form:
-    #        return self.af_form(request.form)
+    @property
+    def get_form(self):
+        if request.json:
+            return self.af_form(MultiDict(request.json))
+        else:
+            return self.af_form(request.form)
 
-    def set_form_next(self, request):
-        if getattr(self.af_form, 'next', None):
-            self.af_form.next.data = get_url(request.args.get('next')) \
+    @property
+    def form(self):
+        if self.populate and request.form:
+            f = self.get_form
+        else:
+            f = self.af_form()
+        self.set_form_next(f)
+        return f
+
+    def set_form_next(self, form):
+        if getattr(form, 'next', None):
+            form.next.data = get_url(request.args.get('next')) \
                 or get_url(request.form.get('next')) or ''
 
 
@@ -75,13 +89,19 @@ class AnyForm(object):
         """
         self.app = app
 
-        self.set_provides(self.forms)
+        self.init_provides(self.forms)
 
-        self.register_context_processors(app, self._context_processors)
+        self.register_context_processors(app, self._init_context_processors)
 
         app.extensions['anyform'] = self
 
-    def set_provides(self, forms):
+    def add_form(self, form):
+        """Add an Aform to the extension after initialization"""
+        k,v = self.init_provide(form)
+        self.provides.update({k: v})
+        self.register_context_processors(self.app, self.get_processor_for(v))
+
+    def init_provides(self, forms):
         setattr(self, 'provides', OrderedDict([self.init_provide(f) for f in forms]))
 
     def init_provide(self, f):
@@ -93,7 +113,7 @@ class AnyForm(object):
         app.jinja_env.globals.update(context_processors)
 
     @property
-    def _context_processors(self):
+    def _init_context_processors(self):
         ctx_prc = {}
         for form in self.provides.values():
             ctx_prc.update(self.get_processor_for(form))
@@ -124,9 +144,22 @@ class AnyForm(object):
         return rv
 
     def form_ctx(self, fn):
+        """add a function to inject ctx into all aforms on render
+
+        @anyform.form_ctx
+        def dostuff_ctx():
+            do stuff
+        """
         self._add_form_ctx(None, fn)
 
-    def named_form_ctx(self, fn):
+    def tagged_form_ctx(self, fn):
+        """add a function to inject ctx into a specific aform on render
+        e.g. a decorated function named myform_ctx where myform is the aform tag
+
+        @anyform.tagged_form_ctx
+        def myform_ctx():
+            do stuff
+        """
         fn_for_form = fn.__name__.rpartition('_')[0]
         self._add_form_ctx(fn_for_form, fn)
 
@@ -135,4 +168,4 @@ class AnyForm(object):
         return {k: v for k,v in self.provides.items() if self.form_in_endpoint(v.af_points)}
 
     def form_in_endpoint(self, vaf):
-        return any([(v in [str(_endpoint), 'all']) for v in vaf])
+        return any([(v in _endpoints) for v in vaf])

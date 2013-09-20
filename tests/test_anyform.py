@@ -2,8 +2,19 @@ from __future__ import with_statement
 import hmac
 from hashlib import sha1
 import unittest
+from flask import request, render_template
 from flask_anyform import AnyForm, AForm
 from test_app import create_app
+from wtforms import Form, TextField
+
+
+class TestForm(Form):
+    test = TextField(default='TEST FORM')
+
+
+class TestForm2(Form):
+    test = TextField(default='TEST FORM TWO')
+
 
 class AnyFormTest(unittest.TestCase):
     APP_KWARGS = {}
@@ -12,16 +23,30 @@ class AnyFormTest(unittest.TestCase):
     def setUp(self):
         super(AnyFormTest, self).setUp()
 
+        self.forms = [
+            {'af_tag':'test', 'af_form': TestForm, 'af_template': 'macros/_test.html', 'af_macro': 'test_macro', 'af_points': ['all'] },
+            {'af_tag':'test2', 'af_form': TestForm2, 'af_template': 'macros/_test.html', 'af_macro': 'test_macro', 'af_points': ['notindex']}
+        ]
+
         app_kwargs = self.APP_KWARGS
         app = self._create_app(self.ANYFORM_CONFIG or {}, **app_kwargs)
         app.debug = False
         app.config['TESTING'] = True
         app.config['SECRET_KEY'] = B'SECRET_KEY'
-
-        app.anyform_e = AnyForm(app, forms=[])
+        app.anyform_e = AnyForm(app, forms=self.forms)
 
         self.app = app
         self.client = app.test_client()
+
+        s = app.extensions['anyform']
+
+        @s.form_ctx
+        def form_context_value():
+            return {'t1val': "RETURNED FROM A FORM CONTEXT FUNCTION"}
+
+        @s.tagged_form_ctx
+        def test2_cxt():
+            return dict(t2v="RETURNED FROM A TAGGED CONTEXT VALUE FUNCTION")
 
         with self.client.session_transaction() as session:
             session['csrf'] = 'csrf_token'
@@ -58,14 +83,30 @@ class AnyFormTest(unittest.TestCase):
                                 'application/x-www-form-urlencoded',
                                 headers=headers)
 
+    def test_aform(self):
+        self.assertIsNotNone(self.app.extensions['anyform'].provides['test'])
+        self.assertEqual(self.app.extensions['anyform'].provides['test'].af_tag, 'test')
+        self.assertIsInstance(self.app.extensions['anyform'].provides['test'], AForm)
 
     def test_extension(self):
         self.assertIsNotNone(self.app)
         self.assertIsNotNone(self.app.extensions['anyform'])
+        self.assertEqual(self.app.extensions['anyform'], self.app.anyform_e)
         self.assertIsNotNone(self.app.extensions['anyform'].app)
         self.assertIsNotNone(self.app.extensions['anyform'].forms)
         self.assertIsNotNone(self.app.extensions['anyform'].provides)
-        self.assertEqual(self.app.extensions['anyform']._ctx_processors, {})
+        self.assertIsNotNone(self.app.extensions['anyform']._ctx_processors)
+
+    def test_use(self):
+        r = self._get('/')
+        self.assertIn('value="TEST FORM"', r.data)
+        self.assertNotIn('test2', r.data)
+        self.assertIn("RETURNED FROM A FORM CONTEXT FUNCTION", r.data)
+        self.assertNotIn("RETURNED FROM A TAGGED CONTEXT VALUE FUNCTION", r.data)
+        r = self._get('/notindex')
+        self.assertIn('value="TEST FORM TWO"', r.data)
+        self.assertIn('test2', r.data)
+        self.assertIn("RETURNED FROM A TAGGED CONTEXT VALUE FUNCTION", r.data)
 
 if __name__ == '__main__':
     unittest.main()
