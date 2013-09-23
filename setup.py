@@ -2,7 +2,7 @@
 Flask-Anyform
 ------------
 
-Flask application interface & integration of forms
+Flask application meta-form integration
 
 
 Links
@@ -23,7 +23,7 @@ setup(
     license='MIT',
     author='thrisp/hurrata',
     author_email='blueblank@gmail.com',
-    description='Flask application form integration ',
+    description='Flask application meta-form integration ',
     long_description=__doc__,
     packages=['flask_anyform'],
     test_suite="test",
