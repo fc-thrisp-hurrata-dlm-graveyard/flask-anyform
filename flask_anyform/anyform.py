@@ -43,9 +43,11 @@ class AForm(object):
     @property
     def get_form(self):
         if request.json:
-            return self.af_form(MultiDict(request.json))
+            f = self.af_form(MultiDict(request.json))
         else:
-            return self.af_form(request.form)
+            f = self.af_form(request.form)
+        f.validate()
+        return f
 
     @property
     def form(self):
