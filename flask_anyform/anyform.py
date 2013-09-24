@@ -77,7 +77,8 @@ class AnyForm(object):
                  **kwargs):
         self.app = app
         self.forms = forms
-        self._ctx_processors = {}
+        self._ctxs = {}
+        self._ctx_prc = {}
 
         if app is not None and forms is not None:
             self.init_app(app)
@@ -93,15 +94,9 @@ class AnyForm(object):
 
         self.init_provides(self.forms)
 
-        self.register_context_processors(app, self._init_context_processors)
+        self.register_context_processors(app, self.init_context_processors())
 
         app.extensions['anyform'] = self
-
-    def add_form(self, form):
-        """Add an Aform to the extension after initialization"""
-        k,v = self.init_provide(form)
-        self.provides.update({k: v})
-        self.register_context_processors(self.app, self.get_processor_for(v))
 
     def init_provides(self, forms):
         setattr(self, 'provides', OrderedDict([self.init_provide(f) for f in forms]))
@@ -114,13 +109,11 @@ class AnyForm(object):
     def register_context_processors(self, app, context_processors):
         app.jinja_env.globals.update(context_processors)
 
-    @property
-    def _init_context_processors(self):
-        ctx_prc = {}
+    def init_context_processors(self):
         for form in self.provides.values():
-            ctx_prc.update(self.get_processor_for(form))
-        ctx_prc.update({'anyform':_anyform, 'current_forms': current_forms})
-        return ctx_prc
+            self._ctx_prc.update(self.get_processor_for(form))
+        self._ctx_prc.update({'anyform':_anyform, 'current_forms': current_forms})
+        return self._ctx_prc
 
     def get_processor_for(self, form):
         return {"{}_form".format(form.af_tag): self.form_ctx_function(form)}
@@ -134,36 +127,40 @@ class AnyForm(object):
         run_update(**run_ctx())
         return form.render
 
-    def _add_form_ctx(self, form, fn):
-        group = self._ctx_processors.setdefault(form, [])
+    def _add_form_ctx(self, tag, fn):
+        group = self._ctxs.setdefault(tag, [])
         fn not in group and group.append(fn)
 
-    def _run_form_ctx(self, form):
+    def _run_form_ctx(self, tag):
         rv, fns = {}, []
-        for g in [None, form]:
-            for fn in self._ctx_processors.setdefault(g, []):
+        for g in [None, tag]:
+            for fn in self._ctxs.setdefault(g, []):
                 rv.update(fn())
         return rv
 
+    def init_fn_name(self, name):
+        n = name.partition('_')
+        if n[0] == 'anyform':
+            return None
+        else:
+            return n[0]
+
     def form_ctx(self, fn):
-        """add a function to inject ctx into all aforms on render
+        """add a function to inject ctx into aforms at render
+        To add context to all aforms name your function starting
+        with 'anyform':
 
-        @anyform.form_ctx
-        def dostuff_ctx():
-            do stuff
+            @anyform.form_ctx
+            def anyform_dostuff_ctx_fn():
+               do stuff
+
+        to add a function to a specific form start with the aform tag:
+
+            @anyform.form_ctx
+            def myform_ctx():
+                do stuff
         """
-        self._add_form_ctx(None, fn)
-
-    def tagged_form_ctx(self, fn):
-        """add a function to inject ctx into a specific aform on render
-        e.g. a decorated function named myform_ctx where myform is the aform tag
-
-        @anyform.tagged_form_ctx
-        def myform_ctx():
-            do stuff
-        """
-        fn_for_form = fn.__name__.rpartition('_')[0]
-        self._add_form_ctx(fn_for_form, fn)
+        self._add_form_ctx(self.init_fn_name(fn.__name__), fn)
 
     @property
     def get_current_forms(self):

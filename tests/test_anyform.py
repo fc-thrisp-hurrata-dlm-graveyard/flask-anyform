@@ -41,11 +41,11 @@ class AnyFormTest(unittest.TestCase):
         s = app.extensions['anyform']
 
         @s.form_ctx
-        def form_context_value():
+        def anyform_ctx_fnf_for_all_aforms():
             return {'t1val': "RETURNED FROM A FORM CONTEXT FUNCTION"}
 
-        @s.tagged_form_ctx
-        def test2_cxt():
+        @s.form_ctx
+        def test2_ctx_for_test2_aform():
             return dict(t2v="RETURNED FROM A TAGGED CONTEXT VALUE FUNCTION")
 
         with self.client.session_transaction() as session:
@@ -95,7 +95,7 @@ class AnyFormTest(unittest.TestCase):
         self.assertIsNotNone(self.app.extensions['anyform'].app)
         self.assertIsNotNone(self.app.extensions['anyform'].forms)
         self.assertIsNotNone(self.app.extensions['anyform'].provides)
-        self.assertIsNotNone(self.app.extensions['anyform']._ctx_processors)
+        self.assertIsNotNone(self.app.extensions['anyform']._ctxs)
 
     def test_use(self):
         r = self._get('/')
