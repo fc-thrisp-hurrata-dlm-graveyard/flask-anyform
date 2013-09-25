@@ -40,7 +40,7 @@ class AForm(object):
     def render(self):
         return self._renderable(self)
 
-    @property
+
     def get_form(self):
         if request.json:
             f = self.af_form(MultiDict(request.json))
@@ -52,7 +52,7 @@ class AForm(object):
     @property
     def form(self):
         if self.populate and request.form:
-            f = self.get_form
+            f = self.get_form()
         else:
             f = self.af_form()
         self.set_form_next(f)
@@ -154,7 +154,7 @@ class AnyForm(object):
             def anyform_dostuff_ctx_fn():
                do stuff
 
-        to add a function to a specific form start with the aform tag:
+        to add a function to a specific aform start with the aform tag:
 
             @anyform.form_ctx
             def myform_ctx():
@@ -166,5 +166,5 @@ class AnyForm(object):
     def get_current_forms(self):
         return {k: v for k,v in self.provides.items() if self.form_in_endpoint(v.af_points)}
 
-    def form_in_endpoint(self, vaf):
-        return any([(v in _endpoints) for v in vaf])
+    def form_in_endpoint(self, af_points):
+        return any([(x in _endpoints) for x in af_points])
