@@ -24,8 +24,16 @@ class AnyFormTest(unittest.TestCase):
         super(AnyFormTest, self).setUp()
 
         self.forms = [
-            {'af_tag':'test', 'af_form': TestForm, 'af_template': 'macros/_test.html', 'af_macro': 'test_macro', 'af_points': ['all'] },
-            {'af_tag':'test2', 'af_form': TestForm2, 'af_template': 'macros/_test.html', 'af_macro': 'test_macro', 'af_points': ['notindex']}
+            {'af_tag':'test',
+             'af_form': TestForm,
+             'af_template': 'macros/_test.html',
+             'af_macro': 'test_macro',
+             'af_points': ['all'] },
+            {'af_tag':'test2',
+             'af_form': TestForm2,
+             'af_template': 'macros/_test.html',
+             'af_macro': 'test_macro',
+             'af_points': ['notindex']}
         ]
 
         app_kwargs = self.APP_KWARGS
@@ -41,11 +49,11 @@ class AnyFormTest(unittest.TestCase):
         s = app.extensions['anyform']
 
         @s.form_ctx
-        def anyform_ctx_fnf_for_all_aforms():
+        def anyform_ctxfn():
             return {'t1val': "RETURNED FROM A FORM CONTEXT FUNCTION"}
 
         @s.form_ctx
-        def test2_ctx_for_test2_aform():
+        def test2_ctxfn():
             return dict(t2v="RETURNED FROM A TAGGED CONTEXT VALUE FUNCTION")
 
         with self.client.session_transaction() as session:

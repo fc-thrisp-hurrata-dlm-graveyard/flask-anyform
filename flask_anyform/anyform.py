@@ -10,8 +10,13 @@ _anyform = LocalProxy(lambda: current_app.extensions['anyform'])
 _endpoints = LocalProxy(lambda: [str(x) for x in (request.endpoint.rsplit(':')[-1],
                                                   request.endpoint.rsplit('.')[-1],
                                                   u'all')])
-current_forms = LocalProxy(lambda: current_app.extensions['anyform'].get_current_forms)
+current_forms = LocalProxy(lambda: current_app.extensions['anyform'].get_current_forms())
 
+
+def endpoints_list(request):
+    [str(x) for x in (request.endpoint.rsplit(':')[-1],
+                      request.endpoint.rsplit('.')[-1],
+                      u'all')]
 
 class AForm(object):
     def __init__(self, **kwargs):
@@ -36,23 +41,17 @@ class AForm(object):
     def _renderable(self):
         return get_template_attribute(self.af_template, self.af_macro)
 
-    @property
     def render(self):
         return self._renderable(self)
 
-
-    def get_form(self):
-        if request.json:
-            f = self.af_form(MultiDict(request.json))
-        else:
-            f = self.af_form(request.form)
-        f.validate()
-        return f
-
     @property
     def form(self):
-        if self.populate and request.form:
-            f = self.get_form()
+        if request.form:
+            f = self.af_form(request.form)
+            f.validate()
+        elif request.json:
+            f = self.af_form(MultiDict(request.json))
+            f.validate()
         else:
             f = self.af_form()
         self.set_form_next(f)
@@ -125,7 +124,7 @@ class AnyForm(object):
 
     def _on_form_ctx(self, form, run_ctx, run_update):
         run_update(**run_ctx())
-        return form.render
+        return form.render()
 
     def _add_form_ctx(self, tag, fn):
         group = self._ctxs.setdefault(tag, [])
@@ -139,11 +138,10 @@ class AnyForm(object):
         return rv
 
     def init_fn_name(self, name):
-        n = name.partition('_')
-        if n[0] == 'anyform':
+        if name.partition('_')[0] == 'anyform':
             return None
         else:
-            return n[0]
+            return name.rpartition('_')[0]
 
     def form_ctx(self, fn):
         """add a function to inject ctx into aforms at render
@@ -162,7 +160,6 @@ class AnyForm(object):
         """
         self._add_form_ctx(self.init_fn_name(fn.__name__), fn)
 
-    @property
     def get_current_forms(self):
         return {k: v for k,v in self.provides.items() if self.form_in_endpoint(v.af_points)}
 
