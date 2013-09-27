@@ -53,7 +53,6 @@ def parse_changelog():
 
             datestr = parse_date(match.group(1).strip())
 
-            print (version, datestr)
             return version, datestr
 
 
