@@ -18,8 +18,7 @@ requires = ['Flask>=0.9']
 
 setup(
     name='Flask-Anyform',
-    version='',
-    url='http://github.com/thrisp/flask-anyform',
+    version='0.0.2'http://github.com/thrisp/flask-anyform',
     license='MIT',
     author='thrisp/hurrata',
     author_email='blueblank@gmail.com',
