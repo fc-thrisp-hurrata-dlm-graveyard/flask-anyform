@@ -9,7 +9,7 @@ Links
 `````
 * `documentation <http://packages.python.org/>`_
 * `development version
-  <http://github.com/thrisp/flask-anyfomr>`_
+  <http://github.com/thrisp/flask-anyform>`_
 
 """
 from setuptools import setup
@@ -18,12 +18,12 @@ requires = ['Flask>=0.9']
 
 setup(
     name='Flask-Anyform',
-    version='0.0.1',
-    url='http://',
+    version='',
+    url='http://github.com/thrisp/flask-anyform',
     license='MIT',
     author='thrisp/hurrata',
     author_email='blueblank@gmail.com',
-    description='Flask application meta-form integration ',
+    description='Flask application for form integration ',
     long_description=__doc__,
     packages=['flask_anyform'],
     test_suite="test",

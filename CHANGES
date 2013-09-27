@@ -3,14 +3,6 @@ Flask-Anyform Changelog
 
 Here you can see the full list of changes between each Flask-Anyform release.
 
-Version 0.0.1
--------------
-
-Released September 23th 2013
-
-- initial release
-
-
 Version 0.0.2
 -------------
 
@@ -19,3 +11,14 @@ Released September 27th 2013
 - removal of post-init adding of forms
 - collapse adding of context function to one decorator (form_ctx)
 - cleanup overall and in testing
+
+
+Version 0.0.1
+-------------
+
+Released September 23th 2013
+
+- initial release
+
+
+
