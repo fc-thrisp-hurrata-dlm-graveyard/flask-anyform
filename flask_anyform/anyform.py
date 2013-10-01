@@ -70,12 +70,10 @@ class AnyForm(object):
     :param app: The application.
     :param forms: A list of AForm instances
     """
-    def __init__(self,
-                 app=None,
-                 forms=None,
-                 **kwargs):
+    def __init__(self, app=None, forms=None, form_container=AForm, **kwargs):
         self.app = app
         self.forms = forms
+        self.form_container = form_container
         self._ctxs = {}
         self._ctx_prc = {}
 
@@ -84,7 +82,7 @@ class AnyForm(object):
 
     def init_app(self, app):
         """
-        Initializes the Flask-Anyform extension for the specified application.
+        Initializes the Flask-Anyform extension for the specified Flask application.
 
         :param app: The application.
         :param forms: A list of AForm instances, or corresponding dicts
@@ -102,35 +100,35 @@ class AnyForm(object):
 
     def init_provide(self, f):
         if isinstance(f, dict):
-            f = AForm(**f)
+            f = self.form_container(**f)
         return f.af_tag, f
 
     def register_context_processors(self, app, context_processors):
         app.jinja_env.globals.update(context_processors)
 
     def init_context_processors(self):
-        for form in self.provides.values():
-            self._ctx_prc.update(self.get_processor_for(form))
+        for aform in self.provides.values():
+            self._ctx_prc.update(self.get_processor_for(aform))
         self._ctx_prc.update({'anyform':_anyform, 'current_forms': current_forms})
         return self._ctx_prc
 
-    def get_processor_for(self, form):
-        return {"{}_form".format(form.af_tag): self.form_ctx_function(form)}
+    def get_processor_for(self, aform):
+        return {"{}_form".format(aform.af_tag): self.aform_ctx_function(aform)}
 
-    def form_ctx_function(self, form):
-        run_ctx = partial(self._run_form_ctx, form.af_tag)
-        run_update = partial(form.update)
-        return partial(self._on_form_ctx, form, run_ctx, run_update)
+    def aform_ctx_function(self, aform):
+        run_ctx = partial(self._run_aform_ctx, aform.af_tag)
+        run_update = partial(aform.update)
+        return partial(self._on_aform_ctx, aform, run_ctx, run_update)
 
-    def _on_form_ctx(self, form, run_ctx, run_update):
+    def _on_aform_ctx(self, form, run_ctx, run_update):
         run_update(**run_ctx())
         return form.render()
 
-    def _add_form_ctx(self, tag, fn):
+    def _add_aform_ctx(self, tag, fn):
         group = self._ctxs.setdefault(tag, [])
         fn not in group and group.append(fn)
 
-    def _run_form_ctx(self, tag):
+    def _run_aform_ctx(self, tag):
         rv, fns = {}, []
         for g in [None, tag]:
             for fn in self._ctxs.setdefault(g, []):
@@ -143,25 +141,25 @@ class AnyForm(object):
         else:
             return name.rpartition('_')[0]
 
-    def form_ctx(self, fn):
+    def aform_ctx(self, fn):
         """add a function to inject ctx into aforms at render
         To add context to all aforms name your function starting
         with 'anyform':
 
-            @anyform.form_ctx
+            @anyform.aform_ctx
             def anyform_dostuff_ctx_fn():
                do stuff
 
         to add a function to a specific aform start with the aform tag:
 
-            @anyform.form_ctx
+            @anyform.aform_ctx
             def myform_ctx():
                 do stuff
         """
-        self._add_form_ctx(self.init_fn_name(fn.__name__), fn)
+        self._add_aform_ctx(self.init_fn_name(fn.__name__), fn)
 
     def get_current_forms(self):
-        return {k: v for k,v in self.provides.items() if self.form_in_endpoint(v.af_points)}
+        return {k: v for k, v in self.provides.items() if self.form_in_endpoint(v.af_points)}
 
     def form_in_endpoint(self, af_points):
         return any([(x in _endpoints) for x in af_points])

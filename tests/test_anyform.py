@@ -48,11 +48,11 @@ class AnyFormTest(unittest.TestCase):
 
         s = app.extensions['anyform']
 
-        @s.form_ctx
+        @s.aform_ctx
         def anyform_ctxfn():
             return {'t1val': "RETURNED FROM A FORM CONTEXT FUNCTION"}
 
-        @s.form_ctx
+        @s.aform_ctx
         def test2_ctxfn():
             return dict(t2v="RETURNED FROM A TAGGED CONTEXT VALUE FUNCTION")
 
