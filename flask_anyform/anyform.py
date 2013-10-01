@@ -7,16 +7,14 @@ from .utils import get_url
 
 
 _anyform = LocalProxy(lambda: current_app.extensions['anyform'])
-_endpoints = LocalProxy(lambda: [str(x) for x in (request.endpoint.rsplit(':')[-1],
-                                                  request.endpoint.rsplit('.')[-1],
-                                                  u'all')])
+_endpoints = LocalProxy(lambda: endpoints_list(request))
 current_forms = LocalProxy(lambda: current_app.extensions['anyform'].get_current_forms())
 
 
 def endpoints_list(request):
-    [str(x) for x in (request.endpoint.rsplit(':')[-1],
-                      request.endpoint.rsplit('.')[-1],
-                      u'all')]
+    return [str(x) for x in (request.endpoint.rsplit(':')[-1],
+                             request.endpoint.rsplit('.')[-1],
+                             u'all')]
 
 class AForm(object):
     def __init__(self, **kwargs):
