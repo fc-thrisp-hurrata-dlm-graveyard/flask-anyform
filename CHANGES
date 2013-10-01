@@ -3,6 +3,14 @@ Flask-Anyform Changelog
 
 Here you can see the full list of changes between each Flask-Anyform release.
 
+Version 0.0.4
+-------------
+
+Released October 1st 2013
+
+- further cleanup
+- added documentation
+
 Version 0.0.3
 -------------
 
