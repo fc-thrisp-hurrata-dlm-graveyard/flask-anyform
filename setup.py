@@ -1,20 +1,19 @@
 """
 Flask-Anyform
-------------
+-------------
 
-Flask application meta-form integration
+Flask application & extension form integration
 
 
 Links
 `````
-* `documentation <http://packages.python.org/>`_
-* `development version
-  <http://github.com/thrisp/flask-anyform>`_
+* `documentation <http://pythonhosted.org/Flask-Anyform>`_
+* `development version <http://github.com/thrisp/flask-anyform>`_
 
 """
 from setuptools import setup
 
-requires = ['Flask>=0.9']
+requires = ['Flask>=0.10']
 
 setup(
     name='Flask-Anyform',
