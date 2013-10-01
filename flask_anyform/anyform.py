@@ -118,9 +118,9 @@ class AnyForm(object):
         run_update = partial(aform.update)
         return partial(self._on_aform_ctx, aform, run_ctx, run_update)
 
-    def _on_aform_ctx(self, form, run_ctx, run_update):
+    def _on_aform_ctx(self, aform, run_ctx, run_update):
         run_update(**run_ctx())
-        return form.render()
+        return aform.render()
 
     def _add_aform_ctx(self, tag, fn):
         group = self._ctxs.setdefault(tag, [])
