@@ -25,10 +25,15 @@ setup(
     description='Flask application for form integration ',
     long_description=__doc__,
     packages=['flask_anyform'],
-    test_suite="test",
     zip_safe=False,
     platforms='any',
     install_requires=requires,
+    test_suite='nose.collector',
+    tests_require=[
+        'nose',
+        'flask-wtf'
+        'wtforms'
+    ],
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
