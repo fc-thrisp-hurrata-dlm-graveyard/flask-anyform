@@ -16,6 +16,7 @@ def endpoints_list(request):
                              request.endpoint.rsplit('.')[-1],
                              u'all')]
 
+
 class AForm(object):
     def __init__(self, **kwargs):
         self.af_tag = kwargs.get('af_tag')
@@ -24,7 +25,6 @@ class AForm(object):
         self.af_view_template = kwargs.get('af_view_template')
         self.af_macro = kwargs.get('af_macro')
         self.af_points = self.set_points(kwargs.get('af_points'))
-        self.populate = kwargs.get('populate', True)
 
     def set_points(self, points):
         if points:
@@ -42,16 +42,18 @@ class AForm(object):
     def render(self):
         return self._renderable(self)
 
+    def form_is(self):
+        if request.form:
+            return self.af_form(request.form)
+        elif request.json:
+            return self.af_form(MultiDict(request.json))
+        else:
+            return self.af_form()
+
     @property
     def form(self):
-        if request.form:
-            f = self.af_form(request.form)
-            f.validate()
-        elif request.json:
-            f = self.af_form(MultiDict(request.json))
-            f.validate()
-        else:
-            f = self.af_form()
+        f = self.form_is()
+        f.validate()
         self.set_form_next(f)
         return f
 
@@ -66,7 +68,7 @@ class AnyForm(object):
     The Flask-Anyform extension
 
     :param app: The application.
-    :param forms: A list of AForm instances
+    :param forms: A list of AForm instances or dicts
     """
     def __init__(self, app=None, forms=None, form_container=AForm, **kwargs):
         self.app = app
@@ -140,15 +142,14 @@ class AnyForm(object):
             return name.rpartition('_')[0]
 
     def aform_ctx(self, fn):
-        """add a function to inject ctx into aforms at render
-        To add context to all aforms name your function starting
-        with 'anyform':
+        """add a function to inject ctx into aform at render
+        To add context to all aforms, prefix function with 'anyform':
 
             @anyform.aform_ctx
-            def anyform_dostuff_ctx_fn():
+            def anyform_ctx():
                do stuff
 
-        to add a function to a specific aform start with the aform tag:
+        to add a function to a specific aform prefix the function with the tag:
 
             @anyform.aform_ctx
             def myform_ctx():
