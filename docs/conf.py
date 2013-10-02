@@ -13,6 +13,12 @@
 
 import sys, os
 
+project_name = u'Flask-AnyForm'
+project_org = u'Thrisp/Hurrata'
+project_publisher = project_org
+project_copyright = u'2013, {}'.format(project_org)
+one_line = 'Flask application & extension form integration'
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -41,15 +47,15 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'Flask-Anyform'
-copyright = u'2013, Thrisp/Hurrata'
+project = project_name
+copyright = project_copyright
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
 # The short X.Y version.
-version = '0.0.4'
+version = '0.0.6'
 # The full version, including alpha/beta/rc tags.
 release = version
 
@@ -98,7 +104,7 @@ html_theme = 'flask'
 # further. For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-    #'github_fork': 'mattupstate/flask-security',
+    #'github_fork': '',
     #'index_logo': False
     'touch_icon': 'touch-icon.png',
     'index_logo': 'logo-full.png'
@@ -174,7 +180,7 @@ html_sidebars = {
 #html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'Flask-Anyformdoc'
+htmlhelp_basename = project_name+'doc'
 
 
 # -- Options for LaTeX output --------------------------------------------------
@@ -193,8 +199,8 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'Flask-Anyform.tex', u'Flask-Anyform Documentation',
-   u'Thrisp/Hurrata', 'manual'),
+  ('index', '{}.tex'.format(project_name), u'{} Documentation'.format(project_name),
+   project_org, 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -223,8 +229,8 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'flask-anyform', u'Flask-Anyform Documentation',
-     [u'Thrisp/Hurrata'], 1)
+    ('index', "{}".format(project_name.lower()), u"{} Documentation".format(project_name),
+     [u"{}".format(project_org)], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -237,8 +243,8 @@ man_pages = [
 # (source start file, target name, title, author,
 # dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'Flask-Anyform', u'Flask-Anyform Documentation',
-   u'Thrisp/Hurrata', 'Flask-Anyform', 'One line description of project.',
+  ('index', project_name, "{} Documentation".format(project_name),
+   u"{}".format(project_org), project_name.lower(), one_line,
    'Miscellaneous'),
 ]
 
@@ -255,10 +261,10 @@ texinfo_documents = [
 # -- Options for Epub output ---------------------------------------------------
 
 # Bibliographic Dublin Core info.
-epub_title = u'Flask-Anyform'
-epub_author = u'Thrisp/Hurrata'
-epub_publisher = u'Thrisp/Hurrata'
-epub_copyright = u'2013, Thrisp/Hurrata'
+epub_title = project_name
+epub_author = project_org
+epub_publisher = project_publisher
+epub_copyright = project_copyright
 
 # The language of the text. It defaults to the language option
 # or en if the language is not set.
