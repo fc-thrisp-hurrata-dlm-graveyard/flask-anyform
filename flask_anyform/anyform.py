@@ -12,11 +12,9 @@ current_forms = LocalProxy(lambda: current_app.extensions['anyform'].get_current
 
 
 def endpoints_list(request):
-    e = [str(x) for x in (request.endpoint.rsplit(':')[-1],
+    return [str(x) for x in (request.endpoint.rsplit(':')[-1],
                              request.endpoint.rsplit('.')[-1],
                              u'all')]
-    print e
-    return e
 
 
 class AForm(object):
